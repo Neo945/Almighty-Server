@@ -8,13 +8,14 @@ async function UserAuthentication(req, res, next) {
                 console.log(err);
                 req.user = null;
                 next();
-            } else if (req.user == null)
-                User.findOne({ user: id.id })
-                    .then(async (user) => {
+            } else if (req.user == null) {
+                User.findOne({ _id: id.id })
+                    .then((user) => {
                         req.user = user;
                         next();
                     })
                     .catch((erro) => console.log(erro));
+            }
         });
     } else {
         // if (req.user == null) req.user = null;

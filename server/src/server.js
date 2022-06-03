@@ -70,7 +70,7 @@ app.use(mongoSanitize());
 // gzip compression
 app.use(compression());
 
-// app.use(require('./middleware/UserAuth.middleware'));
+app.use(require('./middleware/UserAuth.middleware'));
 
 // Hosted URL
 const URL =

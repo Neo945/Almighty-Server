@@ -3,13 +3,13 @@ const { User } = require('../models/user');
 const { errorHandler } = require('../utils/errorHandler');
 const transport = require('../config/mailer.config');
 const { URL } = require('../server');
-const { uploadSingleImage } = require('../config/s3.config');
+// const { uploadSingleImage } = require('../config/s3.config');
 
 module.exports = {
     getUser: (req, res) => {
         errorHandler(req, res, async () => {
-            const artist = await User.findOne({ user: req.user._id }).populate('user', '-password');
-            res.status(200).json({ message: 'success', artist });
+            const user = await User.findOne({ _id: req.user._id }).select('-password');
+            res.status(200).json({ message: 'success', user });
         });
     },
     updatePassword: (req, res) => {
@@ -23,39 +23,11 @@ module.exports = {
             return res.status(400).json({ message: 'old password is not correct' });
         });
     },
-    registerUser: (req, res) => {
-        errorHandler(req, res, async () => {
-            let user = await User.findOne({ email: req.body.email });
-            if (!user) {
-                user = await User.create({ ...req.body });
-            }
-            const token = await User.generateEmailVerificationToken(user._id);
-            if (token) {
-                const url = `${URL}/verify/${token}`;
-                const message = `<h1>Please verify your email</h1>
-                    <p>Click on the link below to verify your email</p>
-                    <a href="${url}">${url}</a>`;
-                transport(req.user.email, 'Learnit Verification', message);
-                res.json({ message: 'success' });
-            } else {
-                res.json({ message: 'Unable to generate token' });
-            }
-            res.status(201).json({ success: true, message: 'success', user: { ...user, password: null } });
-        });
-    },
     createUser: (req, res) => {
         errorHandler(req, res, async () => {
             if (!(await User.exists({ email: req.body.email }))) {
-                uploadSingleImage(req, res, async (err) => {
-                    if (err) res.status(500).json({ error: err });
-                    const user = await User.create({ ...req.body, image: req.file.location });
-                    if (user) {
-                        const message = '<h1>Welcome</h1><p>Click on the link below to verify your email</p>';
-                        transport(req.user.email, 'Learnit Verification', message);
-                        res.status(201).json({ success: true, message: 'success', user: { ...user, password: null } });
-                    }
-                    res.status(400).json({ message: 'Unable to create user' });
-                });
+                const user = await User.create({ isVarified: false, ...req.body });
+                res.status(201).json({ success: true, message: 'success', user: { ...user, password: null } });
             } else res.status(400).json({ message: 'User already exists' });
         });
     },
@@ -121,3 +93,43 @@ module.exports = {
         res.redirect('http://localhost:3000/verify');
     },
 };
+
+/**
+ * registerUser: (req, res) => {
+        errorHandler(req, res, async () => {
+            let user = await User.findOne({ email: req.body.email });
+            if (!user) {
+                user = await User.create({ ...req.body });
+            }
+            const token = await User.generateEmailVerificationToken(user._id);
+            if (token) {
+                const url = `${URL}/verify/${token}`;
+                const message = `<h1>Please verify your email</h1>
+                    <p>Click on the link below to verify your email</p>
+                    <a href="${url}">${url}</a>`;
+                transport(req.user.email, 'Learnit Verification', message);
+                res.json({ message: 'success' });
+            } else {
+                res.json({ message: 'Unable to generate token' });
+            }
+            res.status(201).json({ success: true, message: 'success', user: { ...user, password: null } });
+        });
+    },
+    // createUser: (req, res) => {
+    //     errorHandler(req, res, async () => {
+    //         if (!(await User.exists({ email: req.body.email }))) {
+    //             // uploadSingleImage(req, res, async (err) => {
+    //             //     if (err) res.status(500).json({ error: err });
+    //             // const user = await User.create({ ...req.body, image: req.file.location });
+    //             const user = await User.create({ isVarified: false, ...req.body });
+    //             // if (user) {
+    //             //     const message = '<h1>Welcome</h1><p>Click on the link below to verify your email</p>';
+    //             //     transport(req.user.email, 'Learnit Verification', message);
+    //             // }
+    //             res.status(201).json({ success: true, message: 'success', user: { ...user, password: null } });
+    //             // });
+    //         } else res.status(400).json({ message: 'User already exists' });
+    //     });
+    // },
+    
+ */

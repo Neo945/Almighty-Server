@@ -95,7 +95,7 @@ UserSchema.statics.generateEmailVerificationToken = async function (_id) {
 UserSchema.statics.verifyEmailToken = async function (id, token) {
     const user = await this.findById(id);
     if (await bcrypt.compare(token, user._id)) {
-        user.isVerified = true;
+        user.isVarified = true;
         user.save();
 
         return true;
