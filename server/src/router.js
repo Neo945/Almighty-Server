@@ -1,7 +1,7 @@
 const router = require('express').Router();
 
 // Routes for the API (all the user routes are prefixed with /auth) Auth
-// router.use('/auth', require('./routes/user.routes'));
+router.use('/auth', require('./routes/user.routes'));
 
 // Routes for the API (all the routes are prefixed with /music) Music related routes
 // router.use('/music', require('./routes/music.routes'));

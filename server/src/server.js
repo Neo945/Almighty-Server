@@ -72,17 +72,19 @@ app.use(compression());
 
 // app.use(require('./middleware/UserAuth.middleware'));
 
-// app.get('/', async (req, res) => {
-//     //     res.render('index', { name: 'Hello' });
-//     res.send('Hello! from muscia, and setup done');
-// });
-
 // Hosted URL
 const URL =
     process.env.NODE_ENV === 'production' ? 'https://muscia.herokuapp.com' : `${env.PROTOCOL}://${env.HOST}:${env.PORT}`;
 
 // Routes for the API (all the routes are prefixed with /api)
-app.use('/api', express.json(), require('./router'));
+app.use('/api/v1', express.json(), require('./router'));
+
+app.get('/', (req, res) => {
+    res.json({
+        message: 'Welcome to MyApp!',
+        url: URL,
+    });
+});
 
 app.use('/static', express.static(path.join(__dirname, 'static')));
 

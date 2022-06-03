@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 const jwt = require('jsonwebtoken');
-const { SuperUser, User } = require('../models/user');
+const { User } = require('../models/user');
 
 async function SocketUserAuthentication(socket, next) {
     if (socket.handshake.query && socket.handshake.query.jwt) {
@@ -10,10 +10,10 @@ async function SocketUserAuthentication(socket, next) {
                 socket.user = null;
                 next();
             } else {
-                SuperUser.findOne({ user: id.id })
+                User.findOne({ user: id.id })
                     .then(async (user) => {
                         console.log(user);
-                        socket.user = await User.findOne({ user: user._id }).populate('user', '-password');
+                        socket.user = user;
                         next();
                     })
                     .catch((erro) => console.log(erro));
