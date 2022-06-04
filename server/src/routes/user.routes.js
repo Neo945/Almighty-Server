@@ -8,7 +8,6 @@ router.get('/logout', isa, view.logout);
 router.get('/send/email/', view.sendEmailVerfication);
 router.get('/verify/email/', view.verifyEmailToken);
 router.post('/register', view.createUser);
-router.post('/register/create/account', view.registerUser);
 router.post('/login', view.login);
 
 router.get(

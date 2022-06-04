@@ -1,9 +1,84 @@
 /* eslint-disable no-param-reassign */
 const socketio = require('socket.io');
 const SocketUserAuthMiddleware = require('../middleware/SocketUserAuth.middleware');
-const { User } = require('../models/user');
 const Room = require('../models/room');
 const Message = require('../models/message');
+
+function saveMessage(content, type, user) {
+    return new Promise((resolve, reject) => {
+        const newMessage = new Message({
+            user: user._id,
+            content,
+            type,
+        });
+        newMessage.save((err, savedMessage) => {
+            if (err) {
+                reject(err);
+            }
+            resolve(savedMessage);
+        });
+    });
+}
+
+function getMessages(roomId) {
+    return new Promise((resolve, reject) => {
+        Message.find({ room: roomId })
+            .then((messages) => {
+                resolve(messages);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+}
+
+function joinUser(user, roomId) {
+    return new Promise((resolve, reject) => {
+        Room.findById(roomId)
+            .then((room) => {
+                if (room) {
+                    room.users.push(user._id);
+                    room.save((err, savedRoom) => {
+                        if (err) {
+                            reject(err);
+                        }
+                        resolve(savedRoom, true);
+                    });
+                } else {
+                    Room.create({
+                        users: [user._id],
+                    }).then((newRoom) => {
+                        resolve(newRoom, false);
+                    });
+                }
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+}
+
+function leaveUser(user, roomId) {
+    return new Promise((resolve, reject) => {
+        Room.findById(roomId)
+            .then((room) => {
+                if (room) {
+                    room.users.filter((userId) => userId.toString() !== user._id.toString());
+                    room.save((err, savedRoom) => {
+                        if (err) {
+                            reject(err);
+                        }
+                        resolve(savedRoom);
+                    });
+                } else {
+                    resolve(null);
+                }
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+}
 
 module.exports = (server) => {
     const io = socketio(server, {
@@ -16,46 +91,35 @@ module.exports = (server) => {
     io.use(SocketUserAuthMiddleware);
 
     io.on('connection', (socket) => {
-        socket.on('joinRoom', async ({ room }) => {
-            socket.join(room);
-            socket.user = await User.findOneAndUpdate({ user: socket.user._id }, { room }, { new: true });
-            socket.to(room).emit('message', { message: 'You joined the room' });
-            socket.broadcast.to(room).emit('message', { message: `${socket.username} joined the room` });
-            User.find({ room })
-                .populate('user', '-password')
-                .then((users) => {
-                    socket.broadcast.to(room).emit('userInfo', { room, users });
-                });
-            Room.findOne({ room }).then(async (err, r) => {
-                if (err) console.log(err);
-                if (r) {
-                    r.users.push(socket.user._id);
-                    await r.save();
+        console.log('a user connected');
+        socket.on('join', (roomId) => {
+            joinUser(socket.user, roomId).then((room, isNewUser) => {
+                socket.join(room._id);
+                socket.emit('message', saveMessage('Welcome', 'inst', socket.user));
+                socket.broadcast.to(room._id).emit('message', saveMessage('Another user connected', 'inst', socket.user));
+                if (isNewUser) {
+                    getMessages(room._id).then((messages) => {
+                        socket.emit('messages', messages);
+                    });
                 }
             });
+            socket.on('chatMessage', (message) => {
+                io.to(roomId).emit('message', saveMessage(message, 'text', socket.user));
+            });
         });
-        socket.on('message', ({ message }) => {
-            io.to(socket.user.room).emit('message', { message });
-            Message.create({
-                text: message,
-                objectUrl: null,
-                type: 'text',
-                user: socket.user._id,
+
+        socket.on('disconnect', () => {
+            leaveUser(socket.user, socket.room).then((room) => {
+                socket.broadcast.to(room._id).emit('message', saveMessage('Another user disconnected', 'inst', socket.user));
             });
         });
     });
 
-    io.on('connection', (socket) => {
-        socket.on('joinVerify', ({ room }) => {
-            socket.join(room);
-            socket.on('id', ({ id }) => {
-                socket.broadcast.to(room).emit('id', id);
-            });
-            socket.on('send', () => socket.broadcast.to(room).emit('send', 'id'));
-            socket.on('success', (success) => {
-                socket.broadcast.to(room).emit('success', { success });
-            });
-        });
-    });
+    // io.on('connection', (socket) => {
+
+    // });
+
+    // io.on('connection', (socket) => {
+    // });
     return io;
 };
