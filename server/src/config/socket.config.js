@@ -113,6 +113,13 @@ module.exports = (server) => {
                 socket.broadcast.to(room._id).emit('message', saveMessage('Another user disconnected', 'inst', socket.user));
             });
         });
+
+        socket.on('user-vs-join', (roomId) => {
+            joinUser(socket.user, roomId).then((room, isNewUser) => {
+                socket.join(room._id);
+                socket.to(room._id).emit('notify-joined-user', socket.user);
+            });
+        });
     });
 
     // io.on('connection', (socket) => {

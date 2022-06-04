@@ -97,9 +97,9 @@ require('./config/socket.config')(server);
 module.exports = { server, URL };
 
 // TODO: Chating feature (testing)
-// TODO: Video conference
+// TODO: Video conference (testing)
 // TODO: Payment Gateway
-// TODO: Chatbot
+// TODO: Chatbot (testing)
 // TODO: Object Recognition
-// TODO: Google Oauth
-// TODO: CI/CD pipeline
+// TODO: Google Oauth (testing)
+// TODO: CI/CD pipeline (testing)

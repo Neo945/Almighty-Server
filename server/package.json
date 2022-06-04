@@ -37,6 +37,9 @@
         "supertest": "^6.1.6"
     },
     "dependencies": {
+        "dialogflow": "^1.2.0",
+        "dialogflow-fulfillment": "^0.6.1",
+        "actions-on-google": "^3.0.0",
         "aws-sdk": "^2.954.0",
         "bcrypt": "^5.0.1",
         "body-parser": "^1.19.0",
