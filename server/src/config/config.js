@@ -20,6 +20,8 @@ const schema = Joi.object()
         USER_EMAIL: Joi.string().required().description('Email of user'),
         USER_PASSWORD: Joi.string().required().description('Email password'),
         NODE_ENV: Joi.string().required().description('Environment'),
+        RAZORPAY_KEY_ID: Joi.string().required().description('Razorpay key id'),
+        RAZORPAY_KEY_SECRET: Joi.string().required().description('Razorpay key secret'),
     })
     .unknown();
 

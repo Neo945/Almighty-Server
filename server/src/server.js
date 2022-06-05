@@ -103,3 +103,5 @@ module.exports = { server, URL };
 // TODO: Object Recognition
 // TODO: Google Oauth (testing)
 // TODO: CI/CD pipeline (testing)
+// TODO: SMS/Whatsapp
+// TODO: OTP
