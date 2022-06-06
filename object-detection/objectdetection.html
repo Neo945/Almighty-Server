@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <video
+      muted
+      autoplay
+      id="vid"
+      style="
+        position: absolute;
+        margin-left: auto;
+        margin-right: auto;
+        left: 0;
+        right: 0;
+        text-align: center;
+        z-index: 9;
+        width: 640;
+        height: 480;
+      "
+    ></video>
+    <canvas
+      id="can"
+      style="
+        position: absolute;
+        margin-left: auto;
+        margin-right: auto;
+        left: 0;
+        right: 0;
+        text-align: center;
+        z-index: 10;
+        width: 640;
+        height: 480;
+      "
+    ></canvas>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+
+    <script>
+      const video = document.getElementById("vid");
+      const canvas = document.getElementById("can");
+
+      function startVideo() {
+        navigator.getUserMedia(
+          { video: {} },
+          (stream) => (video.srcObject = stream),
+          (err) => console.error(err)
+        );
+      }
+      video.addEventListener("play", () => runCoco());
+
+      startVideo();
+
+      const runCoco = async () => {
+        const net = await cocoSsd.load();
+        console.log("Handpose model loaded.");
+        setInterval(() => {
+          detect(net);
+        }, 10);
+      };
+
+      const drawRect = (detections, ctx) => {
+        detections.forEach((prediction) => {
+          const [x, y, width, height] = prediction["bbox"];
+          const text = prediction["class"];
+
+          const color = Math.floor(Math.random() * 16777215).toString(16);
+          ctx.strokeStyle = "#" + color;
+          ctx.font = "18px Arial";
+
+          ctx.beginPath();
+          ctx.fillStyle = "#" + color;
+          ctx.fillText(text, x, y);
+          ctx.rect(x, y, width, height);
+          ctx.stroke();
+        });
+      };
+
+      const detect = async (net) => {
+        if (video !== null && video.readyState === 4) {
+          const videoWidth = video.videoWidth;
+          const videoHeight = video.videoHeight;
+
+          video.width = videoWidth;
+          video.height = videoHeight;
+
+          canvas.width = videoWidth;
+          canvas.height = videoHeight;
+
+          const obj = await net.detect(video);
+          const ctx = canvas.getContext("2d");
+
+          drawRect(obj, ctx);
+        }
+      };
+    </script>
+  </body>
+</html>

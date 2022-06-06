@@ -98,10 +98,10 @@ module.exports = { server, URL };
 
 // TODO: Chating feature (testing)
 // TODO: Video conference (testing)
-// TODO: Payment Gateway
+// TODO: Payment Gateway (testing)
 // TODO: Chatbot (testing)
-// TODO: Object Recognition
+// TODO: Face Recognition (Done)
 // TODO: Google Oauth (testing)
 // TODO: CI/CD pipeline (testing)
 // TODO: SMS/Whatsapp
-// TODO: OTP
+// TODO: OTP (testing)
