@@ -14,7 +14,9 @@ async function UserAuthentication(req, res, next) {
                         req.user = user;
                         next();
                     })
-                    .catch((erro) => console.log(erro));
+                    .catch((erro) => {
+                        next();
+                    });
             }
         });
     } else {

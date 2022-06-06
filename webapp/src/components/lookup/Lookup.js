@@ -2,7 +2,7 @@ const URL = "http://localhost:5000";
 
 async function JSONlookup(method, endpoint, parameters, data) {
   console.log(data);
-  const response = await fetch(`${URL}/api${endpoint}${parameters}`, {
+  const response = await fetch(`${URL}/api/v1${endpoint}${parameters}`, {
     method,
     body: method !== "GET" ? data : undefined,
     credentials: "include",
@@ -12,7 +12,7 @@ async function JSONlookup(method, endpoint, parameters, data) {
       Accept: "application/json",
     },
   });
-  return response.json();
+  return await response.json();
 }
 
 export default JSONlookup;

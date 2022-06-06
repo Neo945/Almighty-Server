@@ -3,13 +3,13 @@ const bcrypt = require('bcrypt');
 const GoogleStratagy = require('passport-google-oauth20');
 const { errorOHandler } = require('../utils/errorHandler');
 const env = require('./config');
-const { SuperUser } = require('../models/user');
+const { User } = require('../models/user');
 
 passport.serializeUser((user, done) => {
     done(null, user._id);
 });
 passport.deserializeUser(async (id, done) => {
-    done(null, await SuperUser.findById(id));
+    done(null, await User.findById(id));
 });
 
 passport.use(
@@ -20,16 +20,17 @@ passport.use(
             callbackURL: 'http://localhost:5000/api/auth/google/redirect',
         },
         async (access, refresh, email, done) => {
-            const existingUser = await SuperUser.findOne({ email: email.emails[0].value });
+            const existingUser = await User.findOne({ email: email.emails[0].value });
             if (existingUser) {
                 done(null, existingUser);
             } else {
                 errorOHandler(async () => {
-                    const newUser = await SuperUser.create({
+                    const newUser = await User.create({
                         isVerified: true,
+                        profileImage: email.photos[0].value,
                         username: email.displayName,
                         email: email.emails[0].value,
-                        password: await bcrypt.genSalt(),
+                        password: await User.generatePassword(),
                     });
                     done(null, newUser);
                 });

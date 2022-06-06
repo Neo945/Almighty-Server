@@ -16,9 +16,10 @@ const UserSchema = new Schema(
         },
         username: {
             type: String,
-            required: [true, 'Please fill the username'],
-            trim: true,
-            minlength: 5,
+            // required: [true, 'Please fill the username'],
+            // trim: true,
+            // minlength: 5,
+            default: '',
         },
         password: {
             type: String,
@@ -54,6 +55,10 @@ const UserSchema = new Schema(
             type: Number,
             min: [12, 'Grow Up'],
         },
+        otp: {
+            type: Number,
+            default: null,
+        },
     },
     {
         timestamps: true,
@@ -83,6 +88,13 @@ UserSchema.statics.login = async function (email, password) {
     }
     return null;
 };
+UserSchema.statics.loginByOtp = async function (email, otp) {
+    const user = await this.findOne({ email });
+    if (await bcrypt.compare(otp, user.otp)) {
+        return getToken(user._id);
+    }
+    return null;
+};
 
 UserSchema.statics.generateEmailVerificationToken = async function (_id) {
     if (await this.exists({ _id })) {
@@ -103,6 +115,35 @@ UserSchema.statics.verifyEmailToken = async function (id, token) {
     return false;
 };
 
+UserSchema.statics.generateEmailVerificationOTP = async function (_id) {
+    const user = await this.findById(_id);
+    if (user) {
+        const otp = Math.floor(Math.random() * 100000);
+        const salt = await bcrypt.genSalt();
+        user.otp = await bcrypt.hash(otp, salt);
+        await user.save();
+        return otp;
+    }
+    return null;
+};
+
+UserSchema.statics.verifyEmailOTP = async function (email, otp) {
+    const user = await this.findOne({ email });
+    // if (parseInt(user.otp, 10) === parseInt(otp, 10)) {
+    //     user.isVarified = true;
+    //     user.save();
+    //     return true;
+    // }
+
+    if (await bcrypt.compare(otp, user.otp)) {
+        user.isVarified = true;
+        user.save();
+        return true;
+    }
+
+    return false;
+};
+
 UserSchema.statics.updatePassword = async function (id, oldPass, newPass) {
     const user = await this.findById(id);
     if (await bcrypt.compare(oldPass, user.password)) {
@@ -119,6 +160,11 @@ UserSchema.statics.savePass = async function (username, password) {
     const salt = await bcrypt.genSalt();
     user.password = await bcrypt.hash(password, salt);
     user.save();
+};
+
+UserSchema.statics.generatePassword = async function (username, password) {
+    // eslint-disable-next-line no-return-await
+    return await bcrypt.genSalt();
 };
 
 const User = mongoose.model('User', UserSchema);

@@ -1,19 +1,15 @@
 import OAuth from "../OAuth/OAuth";
-import io from "socket.io-client";
+// import io from "socket.io-client";
 import isEmail from "validator/lib/isEmail";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import lookup from "../lookup/Lookup";
-import {
-  Button,
-  CircularProgress,
-  FormControl,
-  TextField,
-} from "@mui/material";
+import { Button, CircularProgress, TextField } from "@mui/material";
 
 function UserEmail(props) {
-  const [socket, setSocket] = useState(null);
-  const [state, setState] = useState({ email: "", username: "" });
+  // const [socket, setSocket] = useState(null);
+  const [state, setState] = useState({ email: "", otp: "" });
   const [loading, setLoading] = useState(false);
+  const [verify, setVarify] = useState(false);
   // useEffect(() => {
   //   setSocket(io("http://localhost:5000"));
   //   // if (socket) {
@@ -26,62 +22,50 @@ function UserEmail(props) {
     <>
       <div className="email-form">
         {loading ? <CircularProgress style={{ position: "absolute" }} /> : null}
-        <FormControl
+        <form
           method="POST"
           action="/"
           onSubmit={async (e) => {
-            e.preventDefault();
-            if (!isEmail(state.email)) {
-              alert("Not a valid email");
-            } else if (!state.username) {
-              alert("Not a valid username");
-            } else {
-              const data = await lookup(
+            if (verify) {
+              e.preventDefault();
+              setLoading(true);
+              const { email, otp } = state;
+              const response = await lookup(
                 "POST",
-                "/auth/register",
+                "/auth/verify/email",
                 "",
-                JSON.stringify(state)
+                JSON.stringify({ email, otp })
               );
-              console.log(data);
-              if (data.success) {
-                props.history("/register/form");
+              if (response.success) {
+                props.history.push("/done");
+              } else {
+                alert(response.message);
+              }
+              setLoading(false);
+            } else {
+              e.preventDefault();
+              if (!isEmail(state.email)) {
+                alert("Not a valid email");
+              } else {
                 const data = await lookup(
                   "POST",
-                  "/email/send",
+                  "/auth/send/email",
                   "",
-                  JSON.stringify({ email: state.email })
+                  JSON.stringify(state)
                 );
+                console.log(data);
                 if (data.success) {
-                  setLoading(true);
-                  socket.emit("joinVerify", {
-                    room: data.room,
-                  });
-                  socket.on("send", (data) => {
-                    if (data === "id") socket.emit("id", data.user._id);
-                  });
-                  socket.on("success", (success) => {
-                    if (success) {
-                      props.history("/register/success");
-                    } else alert("Something went wrong");
-                  });
-                } else alert("Something went wrong");
-              } else {
-                alert(JSON.stringify(data.message, 2, 4));
+                  setVarify(true);
+                  if (data.success) {
+                    setLoading(true);
+                  } else alert("Something went wrong");
+                } else {
+                  alert(JSON.stringify(data.message, 2, 4));
+                }
               }
             }
           }}
         >
-          <TextField
-            autoComplete="username"
-            label="Username"
-            variant="outlined"
-            name="username"
-            type="text"
-            value={state.username}
-            onChange={(e) => {
-              setState({ ...state, email: e.target.value });
-            }}
-          />
           <TextField
             autoComplete="email"
             label="Email"
@@ -93,10 +77,22 @@ function UserEmail(props) {
               setState({ ...state, email: e.target.value });
             }}
           />
+          {verify ? (
+            <TextField
+              label="OTP"
+              variant="outlined"
+              name="otp"
+              type="otp"
+              value={state.otp}
+              onChange={(e) => {
+                setState({ ...state, otp: e.target.value });
+              }}
+            />
+          ) : null}{" "}
           <Button type="submit" variant="contained" name="sumbit">
             Submit
           </Button>
-        </FormControl>
+        </form>
       </div>
     </>
   );

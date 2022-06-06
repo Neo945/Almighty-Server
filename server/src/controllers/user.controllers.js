@@ -78,11 +78,52 @@ module.exports = {
             }
         });
     },
+    sendRegistrationEmail: async (req, res) => {
+        errorHandler(req, res, async () => {
+            if (req.user) {
+                const token = await User.generateEmailVerificationOTP(req.user._id);
+                if (token) {
+                    const message = `<h1>Please verify your email</h1>
+                        <p>Click on the link below to verify your email</p>
+                        <div>${token}</div>`;
+                    transport(req.user.email, 'Email Verification', message);
+                    res.json({ message: 'success' });
+                } else {
+                    res.json({ message: 'Unable to generate token' });
+                }
+            } else {
+                console.log(req.body);
+                let user = await User.findOne({ email: req.body.email });
+                if (!user) {
+                    console.log('Check');
+                    user = await User.create({ email: req.body.email, password: await User.generatePassword() });
+                }
+                const token = await User.generateEmailVerificationOTP(user._id);
+                if (token) {
+                    const message = `<h1>Please verify your email</h1>
+                        <p>Click on the link below to verify your email</p>
+                        <div>${token}</div>`;
+                    transport(user.email, 'Email Verification', message);
+                    res.json({ success: true, message: 'success' });
+                } else {
+                    res.json({ message: 'Unable to generate token' });
+                }
+            }
+        });
+    },
     verifyEmailToken: async (req, res) => {
         errorHandler(req, res, async () => {
-            const { token } = req.body;
-            const isVerified = await User.verifyEmailToken(req.user._id, token);
+            const { otp, email } = req.body;
+            console.log(req.body);
+            const isVerified = await User.verifyEmailOTP(email, otp);
             if (isVerified) {
+                const token = await User.loginByOtp(email, otp);
+                if (token) {
+                    res.cookie('jwt', token, {
+                        maxAge: require('../config/config').TOKEN_LENGTH,
+                    });
+                    res.status(201).json({ mesage: 'login Successful' });
+                }
                 res.json({ message: 'Email varified!! Now go back and complete teh form' });
             } else {
                 res.json({ message: 'Email not verified' });
@@ -91,6 +132,19 @@ module.exports = {
     },
     emailVerificationRedirct: async (req, res) => {
         res.redirect('http://localhost:3000/verify');
+    },
+    saveDetails: async (req, res) => {
+        errorHandler(req, res, async () => {
+            const { phone, age, username } = req.body;
+            const user = await User.findOne({ _id: req.user._id });
+            if (user) {
+                user.phone = phone;
+                user.username = username;
+                user.age = age;
+                user.save();
+                res.json({ message: 'success' });
+            }
+        });
     },
 };
 
