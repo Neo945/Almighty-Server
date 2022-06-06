@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <input type="file" name="" id="image" />
+    <progress id="progress" value="32" max="100">32%</progress>
+    <div id="result"></div>
+    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+    <script src="https://unpkg.com/tesseract.js@1.0.19/src/index.js"></script>
+    <script>
+      const image = document.getElementById("image");
+      const progress = document.getElementById("progress");
+
+      image.addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function () {
+          const img = new Image();
+          img.src = reader.result;
+          img.onload = function () {
+            Tesseract.recognize(img, "eng", {
+              logger: (m) => {
+                document.getElementById("progress").value = m.progress * 100;
+              },
+            })
+              .then(function ({ data: { text } }) {
+                document.getElementById("result").innerHTML = text;
+              })
+              .catch((err) => console.error(err));
+          };
+        };
+      });
+    </script>
+  </body>
+</html>
