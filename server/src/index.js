@@ -38,18 +38,22 @@ const unexpectedErrorHandler = (error) => {
     });
 };
 
-process.on('uncaughtException', unexpectedErrorHandler);
-process.on('unhandledRejection', unexpectedErrorHandler);
+// if (env.NODE_ENV !== 'production') {
+//     process.on('uncaughtException', unexpectedErrorHandler);
+//     process.on('unhandledRejection', unexpectedErrorHandler);
+// }
+// process.on('uncaughtException', unexpectedErrorHandler);
+// process.on('unhandledRejection', unexpectedErrorHandler);
 
 // Handle Keyboard Interruption when the server is running
-process.on('SIGINT', () => {
-    // Close the server on Keyboard Interruption
-    server.close(() => {
-        logger.info('Server closed');
-        // Disconnect from mongoDB server on Keyboard Interruption
-        mongoose.disconnect(() => {
-            logger.info('Mongoose disconnected');
-            process.exit(1);
-        });
-    });
-});
+// process.on('SIGINT', () => {
+//     // Close the server on Keyboard Interruption
+//     server.close(() => {
+//         logger.info('Server closed');
+//         // Disconnect from mongoDB server on Keyboard Interruption
+//         mongoose.disconnect(() => {
+//             logger.info('Mongoose disconnected');
+//             process.exit(1);
+//         });
+//     });
+// });

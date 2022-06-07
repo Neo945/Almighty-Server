@@ -56,7 +56,7 @@ const UserSchema = new Schema(
             min: [12, 'Grow Up'],
         },
         otp: {
-            type: Number,
+            type: String,
             default: null,
         },
     },
@@ -120,7 +120,7 @@ UserSchema.statics.generateEmailVerificationOTP = async function (_id) {
     if (user) {
         const otp = Math.floor(Math.random() * 100000);
         const salt = await bcrypt.genSalt();
-        user.otp = await bcrypt.hash(otp, salt);
+        user.otp = await bcrypt.hash(`${otp}`, salt);
         await user.save();
         return otp;
     }

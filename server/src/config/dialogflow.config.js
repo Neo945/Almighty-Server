@@ -2,8 +2,7 @@ const dialogflow = require('dialogflow');
 const env = require('./config');
 
 const projectId = env.project_id;
-const sessionId = env.dialogFlowSessionID;
-const languageCode = env.dialogFlowSessionLanguageCode;
+const sessionId = '1';
 
 const sessionClient = new dialogflow.SessionsClient();
 const sessionPath = sessionClient.sessionPath(projectId, sessionId);
@@ -28,6 +27,7 @@ const requestEvent = (event, lang) => ({
 });
 
 const sendRequest = async (request) => {
+    console.log(request);
     const responses = await sessionClient.detectIntent(request);
     console.log('Detected intent');
     const result = responses[0].queryResult;

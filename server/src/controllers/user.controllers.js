@@ -112,6 +112,7 @@ module.exports = {
         });
     },
     verifyEmailToken: async (req, res) => {
+        // eslint-disable-next-line consistent-return
         errorHandler(req, res, async () => {
             const { otp, email } = req.body;
             console.log(req.body);
@@ -122,12 +123,12 @@ module.exports = {
                     res.cookie('jwt', token, {
                         maxAge: require('../config/config').TOKEN_LENGTH,
                     });
-                    res.status(201).json({ mesage: 'login Successful' });
+                    return res.status(201).json({ mesage: 'login Successful' });
                 }
-                res.json({ message: 'Email varified!! Now go back and complete teh form' });
-            } else {
-                res.json({ message: 'Email not verified' });
-            }
+                return res.json({ message: 'Email varified!! Now go back and complete teh form' });
+            } 
+            res.json({ message: 'Email not verified' });
+            
         });
     },
     emailVerificationRedirct: async (req, res) => {
