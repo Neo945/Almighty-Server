@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .goog-te-banner-frame.skiptranslate {
+        display: none;
+      }
+      .skiptranslate.goog-te-gadget {
+        font-size: 0;
+      }
+      .skiptranslate.goog-te-gadget > span {
+        display: none;
+      }
+      .goog-te-combo {
+        width: 70px;
+        padding: 5px;
+        background-color: transparent;
+        color: black;
+        border-radius: 5px;
+        outline: none;
+      }
+      .goog-te-combo > option {
+        color: black;
+        width: 70px;
+      }
+      body::-webkit-scrollbar {
+        display: none;
+      }
+      #goog-gt-tt {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="google_translate_element"></div>
+    If you're looking for random paragraphs, you've come to the right place.
+    When a random word or a random sentence isn't quite enough, the next logical
+    step is to find a random paragraph. We created the Random Paragraph
+    Generator with you in mind. The process is quite simple. Choose the number
+    of random paragraphs you'd like to see and click the button. Your chosen
+    number of paragraphs will instantly appear.
+
+    <script
+      type="text/javascript"
+      src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+    ></script>
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          { pageLanguage: "en" },
+          "google_translate_element"
+        );
+      }
+    </script>
+  </body>
+</html>

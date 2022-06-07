@@ -99,9 +99,9 @@ module.exports = { server, URL };
 // TODO: Chating feature (testing)
 // TODO: Video conference (testing)
 // TODO: Payment Gateway
-// TODO: Chatbot (testing)
+// TODO: Chatbot
 // TODO: Face Recognition
-// TODO: Google Oauth (testing)
+// TODO: Google Oauth
 // TODO: CI/CD pipeline
 // TODO: SMS/Whatsapp
 // TODO: OTP
