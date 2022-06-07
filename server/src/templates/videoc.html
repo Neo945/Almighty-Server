@@ -4,6 +4,10 @@
         <meta charset="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src * gap:; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src *; img-src * data: blob: android-webview-video-poster:; style-src * 'unsafe-inline';"
+        />
         <title>Document</title>
         <style>
             #video-grid {
@@ -20,7 +24,16 @@
         </style>
     </head>
     <body>
-        <div class="video-grid"></div>
+        <input type="button" value="cl" id="cl" />
+        <form action="" id="inp">
+            <input type="input" value="" id="id" />
+            <input type="submit" value="Submit" />
+        </form>
+        <input type="button" id="generate" value="Generate" />
+        <div id="op"></div>
+        <input type="button" id="join" value="Join" />
+        <div id="video-grid"></div>
+        <script src="/static/js/common.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script src="https://unpkg.com/peerjs@1.4.5/dist/peerjs.min.js"></script>
         <script src="/static/js/videoc.js"></script>

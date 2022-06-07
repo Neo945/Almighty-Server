@@ -3,6 +3,7 @@ const SocketUserAuthMiddleware = require('../middleware/SocketUserAuth.middlewar
 const Room = require('../models/room');
 const Message = require('../models/message');
 const { io } = require('../server');
+const VCRoom = require('../models/vcroom');
 
 function saveMessage(content, type, user, room) {
     return new Promise((resolve, reject) => {
@@ -92,7 +93,7 @@ io.use(SocketUserAuthMiddleware);
 
 io.on('connection', (socket) => {
     socket.on('join', (data) => {
-        console.log(data);
+        // console.log(data);
         joinUser(socket.id, socket.user, data.roomId)
             .then((room, is) => {
                 socket.join(data.roomId);
@@ -123,7 +124,7 @@ io.on('connection', (socket) => {
     socket.on('message', (data) => {
         saveMessage(data.content, data.type, socket.user, data.roomId)
             .then((message) => {
-                console.log(message);
+                // console.log(message);
                 io.to(data.roomId).emit('message', {
                     message,
                     user: socket.user,
@@ -136,5 +137,71 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         console.log('user disconnected');
+    });
+});
+
+function joinVC(user, room) {
+    return new Promise((resolve, reject) => {
+        VCRoom.findById(room)
+            .then((vcroom) => {
+                if (vcroom) {
+                    if (vcroom.users.indexOf(user._id) === -1) {
+                        vcroom.users.push(user._id);
+                        vcroom.save((err, savedRoom) => {
+                            if (err) {
+                                reject(err);
+                            }
+                            resolve(savedRoom);
+                        });
+                    }
+                    resolve(room);
+                }
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+}
+
+function leaveVC(user, room) {
+    return new Promise((resolve, reject) => {
+        VCRoom.findById(room)
+            .then((vcroom) => {
+                if (vcroom) {
+                    vcroom.users.filter((userId) => userId.toString() !== user._id.toString());
+                    vcroom.save((err, savedRoom) => {
+                        if (err) {
+                            reject(err);
+                        }
+                        resolve(savedRoom);
+                    });
+                }
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+}
+
+io.on('connection', (socket) => {
+    socket.on('join-room', (roomId, userId) => {
+        socket.join(roomId);
+        joinVC(socket.user._id, roomId).then((room) => {
+            socket.to(roomId).broadcast.emit('user-connected', {
+                user: socket.user._id,
+                room: `${room._id}`,
+            });
+        });
+
+        socket.on('disconnect', () => {
+            leaveVC(socket.user._id, roomId).then((room) => {
+                if (room.users.length === 0) {
+                    room.remove();
+                }
+                socket.to(roomId).broadcast.emit('user-disconnected', {
+                    user: socket.user._id,
+                });
+            });
+        });
     });
 });

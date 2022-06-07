@@ -38,7 +38,20 @@ app.use(
         keys: env.SECRET_KEY,
     })
 );
-app.use(helmet());
+// app.use(
+//     helmet.contentSecurityPolicy({
+//         directives: {
+//             'default-src': ["'self'"],
+//             'connect-src': ["'self'", "'unsafe-inline'"],
+//             'img-src': ["'self'", 'data:'],
+//             'style-src-elem': ["'self'", 'data:'],
+//             'script-src': ["'unsafe-inline'", "'self'"],
+//             'object-src': ["'none'"],
+//         },
+//     })
+// );
+
+// app.use(helmet());
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jsx');
@@ -71,14 +84,14 @@ app.use(mongoSanitize());
 // gzip compression
 app.use(compression());
 
-app.use(require('./middleware/UserAuth.middleware'));
+// app.use();
 
 // Hosted URL
 const URL =
     process.env.NODE_ENV === 'production' ? 'https://muscia.herokuapp.com' : `${env.PROTOCOL}://${env.HOST}:${env.PORT}`;
 
 // Routes for the API (all the routes are prefixed with /api)
-app.use('/', express.json(), require('./router'));
+app.use('/', express.json(), require('./middleware/UserAuth.middleware'), require('./router'));
 
 app.get('/', (req, res) => {
     res.json({

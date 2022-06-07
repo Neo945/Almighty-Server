@@ -5,6 +5,8 @@ router.use('/api/v1/auth', require('./routes/user.routes'));
 
 router.use('/api/v1/bot', require('./routes/automessage.routes'));
 
+router.use('/api/v1/vc', require('./routes/vc.routes'));
+
 router.use('/', require('./routes/template.routes'));
 
 // Routes for the API (all the routes are prefixed with /music) Music related routes
