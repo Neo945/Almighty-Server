@@ -162,7 +162,7 @@ UserSchema.statics.savePass = async function (username, password) {
     user.save();
 };
 
-UserSchema.statics.generatePassword = async function (username, password) {
+UserSchema.statics.generatePassword = async function () {
     // eslint-disable-next-line no-return-await
     return await bcrypt.genSalt();
 };
