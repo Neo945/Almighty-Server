@@ -2,6 +2,7 @@
 const express = require('express');
 const http = require('http');
 const path = require('path');
+const socketio = require('socket.io');
 const compression = require('compression');
 const xss = require('xss-clean');
 const mongoSanitize = require('express-mongo-sanitize');
@@ -90,15 +91,20 @@ app.use('/static', express.static(path.join(__dirname, 'static')));
 
 // Create http server
 const server = http.createServer(app);
+const io = socketio(server, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST'],
+    },
+});
 
-// Integrate websocket with server
-require('./config/socket.config')(server);
-
-module.exports = { server, URL };
+module.exports = { server, URL, io };
 
 // TODO: Chating feature (testing)
 // TODO: Video conference (testing)
 // TODO: Payment Gateway
+// TODO: translator
+// TODO: maps (testing)
 // TODO: Chatbot
 // TODO: Face Recognition
 // TODO: Google Oauth

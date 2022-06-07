@@ -1,5 +1,4 @@
 const passport = require('passport');
-const bcrypt = require('bcrypt');
 const GoogleStratagy = require('passport-google-oauth20');
 const { errorOHandler } = require('../utils/errorHandler');
 const env = require('./config');

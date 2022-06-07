@@ -96,7 +96,11 @@ module.exports = {
                 let user = await User.findOne({ email: req.body.email });
                 if (!user) {
                     console.log('Check');
-                    user = await User.create({ email: req.body.email, password: await User.generatePassword() });
+                    user = await User.create({
+                        email: req.body.email,
+                        password: await User.generatePassword(),
+                        isVerified: false,
+                    });
                 }
                 const token = await User.generateEmailVerificationOTP(user._id);
                 if (token) {
@@ -126,9 +130,8 @@ module.exports = {
                     return res.status(201).json({ mesage: 'login Successful' });
                 }
                 return res.json({ message: 'Email varified!! Now go back and complete teh form' });
-            } 
+            }
             res.json({ message: 'Email not verified' });
-            
         });
     },
     emailVerificationRedirct: async (req, res) => {

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const env = require('./config/config');
 const { server } = require('./server');
 const logger = require('./config/logger.config');
+require('./config/socket.config');
 
 // Establish connection to MongoDB
 mongoose.connect(env.ATLAS_URI, {
@@ -38,22 +39,22 @@ const unexpectedErrorHandler = (error) => {
     });
 };
 
-// if (env.NODE_ENV !== 'production') {
-//     process.on('uncaughtException', unexpectedErrorHandler);
-//     process.on('unhandledRejection', unexpectedErrorHandler);
-// }
+if (env.NODE_ENV === 'production') {
+    process.on('uncaughtException', unexpectedErrorHandler);
+    process.on('unhandledRejection', unexpectedErrorHandler);
+    process.on('SIGINT', () => {
+        // Close the server on Keyboard Interruption
+        server.close(() => {
+            logger.info('Server closed');
+            // Disconnect from mongoDB server on Keyboard Interruption
+            mongoose.disconnect(() => {
+                logger.info('Mongoose disconnected');
+                process.exit(1);
+            });
+        });
+    });
+}
 // process.on('uncaughtException', unexpectedErrorHandler);
 // process.on('unhandledRejection', unexpectedErrorHandler);
 
 // Handle Keyboard Interruption when the server is running
-// process.on('SIGINT', () => {
-//     // Close the server on Keyboard Interruption
-//     server.close(() => {
-//         logger.info('Server closed');
-//         // Disconnect from mongoDB server on Keyboard Interruption
-//         mongoose.disconnect(() => {
-//             logger.info('Mongoose disconnected');
-//             process.exit(1);
-//         });
-//     });
-// });

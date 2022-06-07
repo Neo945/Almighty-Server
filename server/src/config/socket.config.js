@@ -1,10 +1,10 @@
 /* eslint-disable no-param-reassign */
-const socketio = require('socket.io');
 const SocketUserAuthMiddleware = require('../middleware/SocketUserAuth.middleware');
 const Room = require('../models/room');
 const Message = require('../models/message');
+const { io } = require('../server');
 
-function saveMessage(content, type, user) {
+function saveMessage(content, type, user, room) {
     return new Promise((resolve, reject) => {
         const newMessage = new Message({
             user: user._id,
@@ -15,7 +15,12 @@ function saveMessage(content, type, user) {
             if (err) {
                 reject(err);
             }
-            resolve(savedMessage);
+            Room.findById(room).then((roomdata) => {
+                roomdata.messages.push(newMessage._id);
+                roomdata.save().then((savedRoom) => {
+                    resolve(savedMessage);
+                });
+            });
         });
     });
 }
@@ -32,18 +37,21 @@ function getMessages(roomId) {
     });
 }
 
-function joinUser(user, roomId) {
+function joinUser(id, user, roomId) {
     return new Promise((resolve, reject) => {
         Room.findById(roomId)
             .then((room) => {
                 if (room) {
-                    room.users.push(user._id);
-                    room.save((err, savedRoom) => {
-                        if (err) {
-                            reject(err);
-                        }
-                        resolve(savedRoom, true);
-                    });
+                    if (room.users.indexOf(user._id) === -1) {
+                        room.users.push(user._id);
+                        room.save((err, savedRoom) => {
+                            if (err) {
+                                reject(err);
+                            }
+                            resolve(savedRoom, true);
+                        });
+                    }
+                    resolve(room, true);
                 } else {
                     Room.create({
                         users: [user._id],
@@ -80,53 +88,53 @@ function leaveUser(user, roomId) {
     });
 }
 
-module.exports = (server) => {
-    const io = socketio(server, {
-        cors: {
-            origin: '*',
-            methods: ['GET', 'POST'],
-        },
+io.use(SocketUserAuthMiddleware);
+
+io.on('connection', (socket) => {
+    socket.on('join', (data) => {
+        console.log(data);
+        joinUser(socket.id, socket.user, data.roomId)
+            .then((room, is) => {
+                socket.join(data.roomId);
+                io.to(data.roomId).emit('joined', {
+                    room,
+                    user: socket.user,
+                });
+            })
+            .catch((err) => {
+                console.log(err);
+            });
     });
 
-    io.use(SocketUserAuthMiddleware);
-
-    io.on('connection', (socket) => {
-        console.log('a user connected');
-        socket.on('join', (roomId) => {
-            joinUser(socket.user, roomId).then((room, isNewUser) => {
-                socket.join(room._id);
-                socket.emit('message', saveMessage('Welcome', 'inst', socket.user));
-                socket.broadcast.to(room._id).emit('message', saveMessage('Another user connected', 'inst', socket.user));
-                if (isNewUser) {
-                    getMessages(room._id).then((messages) => {
-                        socket.emit('messages', messages);
-                    });
-                }
+    socket.on('leave', (data) => {
+        leaveUser(socket.user, data.roomId)
+            .then((room) => {
+                socket.leave(data.roomId);
+                io.to(data.roomId).emit('left', {
+                    room,
+                    user: socket.user,
+                });
+            })
+            .catch((err) => {
+                console.log(err);
             });
-            socket.on('chatMessage', (message) => {
-                io.to(roomId).emit('message', saveMessage(message, 'text', socket.user));
-            });
-        });
-
-        socket.on('disconnect', () => {
-            leaveUser(socket.user, socket.room).then((room) => {
-                socket.broadcast.to(room._id).emit('message', saveMessage('Another user disconnected', 'inst', socket.user));
-            });
-        });
-
-        socket.on('user-vs-join', (roomId) => {
-            joinUser(socket.user, roomId).then((room, isNewUser) => {
-                socket.join(room._id);
-                socket.to(room._id).emit('notify-joined-user', socket.user);
-            });
-        });
     });
 
-    // io.on('connection', (socket) => {
+    socket.on('message', (data) => {
+        saveMessage(data.content, data.type, socket.user, data.roomId)
+            .then((message) => {
+                console.log(message);
+                io.to(data.roomId).emit('message', {
+                    message,
+                    user: socket.user,
+                });
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    });
 
-    // });
-
-    // io.on('connection', (socket) => {
-    // });
-    return io;
-};
+    socket.on('disconnect', () => {
+        console.log('user disconnected');
+    });
+});

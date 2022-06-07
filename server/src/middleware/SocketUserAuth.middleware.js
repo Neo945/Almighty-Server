@@ -3,16 +3,17 @@ const jwt = require('jsonwebtoken');
 const { User } = require('../models/user');
 
 async function SocketUserAuthentication(socket, next) {
-    if (socket.handshake.query && socket.handshake.query.jwt) {
+    // console.lo/g(socket.handshake.query);
+    if (socket.handshake.query.jwt) {
         jwt.verify(socket.handshake.query.jwt, process.env.SECRET_KEY, (err, id) => {
             if (err) {
                 console.log(err);
                 socket.user = null;
                 next();
             } else {
-                User.findOne({ user: id.id })
+                User.findOne({ _id: id.id })
                     .then(async (user) => {
-                        console.log(user);
+                        // consol/e.log(user);
                         socket.user = user;
                         next();
                     })

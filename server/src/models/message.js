@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { isURL } = require('validator').default;
+// const { isURL } = require('validator').default;
 
 const { Schema } = mongoose;
 

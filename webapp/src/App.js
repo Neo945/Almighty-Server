@@ -6,6 +6,7 @@ import {
   RegistrationForm,
   UpdatePassword,
 } from "./components";
+import Map from "./Map";
 
 function App(props) {
   const history = useNavigate();
@@ -23,6 +24,7 @@ function App(props) {
           path="/register/form"
           element={<RegistrationForm history={history} />}
         />
+        <Route path="/map" element={<Map history={history} />} />
       </Routes>
     </div>
   );
