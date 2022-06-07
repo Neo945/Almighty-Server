@@ -9,7 +9,7 @@
         "test:watch": "jest -i --watchAll",
         "coverage": "jest -i --coverage",
         "coverage:coveralls": "jest -i --coverage --coverageReporters=text-lcov | coveralls",
-        "dev": "set GOOGLE_APPLICATION_CREDENTIALS=G:\\full-stack-app\\server\\src\\config\\key.json&& cross-env NODE_ENV=development nodemon --quiet ./src/index",
+        "dev": "set GOOGLE_APPLICATION_CREDENTIALS=.\\src\\config\\key.json&& cross-env NODE_ENV=development nodemon --quiet ./src/index",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "check": "yarn run lint",
