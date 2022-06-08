@@ -113,8 +113,8 @@ const io = socketio(server, {
 
 module.exports = { server, URL, io };
 
-// TODO: Chating feature (testing)
-// TODO: Video conference (testing)
+// TODO: Chating feature
+// TODO: Video conference
 // TODO: Payment Gateway
 // TODO: translator
 // TODO: maps (testing)

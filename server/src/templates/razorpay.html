@@ -7,34 +7,72 @@
         <title>Document</title>
     </head>
     <body>
+        Amount: 
+        <input placeholder="INR" type="number" id="id"></input>
         <button id="rzp-button1">Pay</button>
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
         <script>
-            var options = {
-                key: 'MASK',
-                amount: '50000',
-                currency: 'INR',
-                name: 'Acme Corp',
-                description: 'Test Transaction',
-                image: 'https://example.com/your_logo',
-                order_id: 'order_JdtCmhpV3wxfNy',
-                handler: function (response) {
-                    alert(response.razorpay_payment_id);
-                    alert(response.razorpay_order_id);
-                    alert(response.razorpay_signature);
-                },
 
-                prefill: {
-                    name: 'Gaurav Kumar',
-                    email: 'gaurav.kumar@example.com',
-                    contact: '9999999999',
-                },
-            };
-            var rzp1 = new Razorpay(options);
-            document.getElementById('rzp-button1').onclick = function (e) {
-                rzp1.open();
-                e.preventDefault();
-            };
+            async function getData() {
+                let res = await fetch('/api/v1/order/create-order',{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        amount: document.querySelector('#id').value
+                    })
+                });
+                let result = await res.json();
+                const { amount, id: order_id, currency } = result.data;
+
+                res = await fetch('/api/v1/order/get-razorpay-key');
+                result = await res.json();
+                const { data: { key: razorpayKey }} = result;
+                const options = {
+                    key: razorpayKey,
+                    amount: amount.toString(),
+                    currency: currency,
+                    name: 'example name',
+                    description: 'example transaction',
+                    order_id: order_id,
+                    handler: async function (response) {
+                        const result = await fetch('/pay-order', 
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    amount: amount,
+                                    razorpayPaymentId: response.razorpay_payment_id,
+                                    razorpayOrderId: response.razorpay_order_id,
+                                    razorpaySignature: response.razorpay_signature,
+                                }),
+                            }
+                        );
+                        const data = await result.json();
+                        alert(data.msg);
+                        fetchOrders();
+                    },
+                    prefill: {
+                        name: 'example name',
+                        email: 'email@example.com',
+                        contact: '111111',
+                    },
+                    notes: {
+                        address: 'example address',
+                    },
+                    theme: {
+                        color: '#80c0f0',
+                    },
+                };
+                const paymentObject = new Razorpay(options);
+                paymentObject.open();
+            }
+
+            document.querySelector('#rzp-button1').addEventListener('click', getData);
+            
         </script>
     </body>
 </html>
